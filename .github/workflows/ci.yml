@@ -1,0 +1,33 @@
+name: CI
+
+# Compila todos os serviços e roda os testes a cada push e pull request.
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+
+jobs:
+  build:
+    name: Build e testes
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: mvn verify
+        run: ./mvnw -B -ntp verify
+
+      - name: Relatórios de teste
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-de-teste
+          path: "**/target/surefire-reports/"
+          if-no-files-found: ignore
