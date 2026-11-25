@@ -1,0 +1,41 @@
+services:
+
+  # Banco do serviço de agendamento. Cada serviço tem o seu banco: nenhum lê as
+  # tabelas do outro, a comunicação entre eles é só pelas mensagens.
+  scheduling-db:
+    image: postgres:16-alpine
+    container_name: scheduling_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${SCHEDULING_DB_NAME:-scheduling_db}
+      POSTGRES_USER: ${SCHEDULING_DB_USER:-scheduling_user}
+      POSTGRES_PASSWORD: ${SCHEDULING_DB_PASSWORD:-scheduling_pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - scheduling_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SCHEDULING_DB_USER:-scheduling_user} -d ${SCHEDULING_DB_NAME:-scheduling_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Broker das mensagens entre os serviços. O painel de gestão fica em http://localhost:15672.
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: hospital_rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-hospital}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-hospital}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  scheduling_data:
