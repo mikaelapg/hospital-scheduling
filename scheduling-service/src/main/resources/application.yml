@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: scheduling-service
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:scheduling_db}
+    username: ${DB_USER:scheduling_user}
+    password: ${DB_PASSWORD:scheduling_pass}
+
+  jpa:
+    # O esquema é do Flyway; o Hibernate só confere se o mapeamento bate com as tabelas.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
